@@ -17,13 +17,36 @@ st.set_page_config(
 def load_latest_data():
     """Load the latest collected data and analysis results."""
     try:
-        data = pd.read_csv('../data/latest_collection.csv')
-        with open('../analysis/latest_analysis.json', 'r') as f:
-            analysis = json.load(f)
+        # Try to load from the sample data file
+        data = pd.read_csv('sample_data.csv')
+        
+        # Create a simple analysis dictionary
+        analysis = {
+            'total_products': len(data),
+            'average_price': data['price'].mean(),
+            'total_stock': data['stock'].sum(),
+            'last_updated': data['last_updated'].iloc[0]
+        }
         return data, analysis
     except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
-        return None, None
+        st.warning(f"Using sample data. Error loading original data: {str(e)}")
+        
+        # Return sample data if the file doesn't exist
+        sample_data = pd.DataFrame({
+            'product': ['Product A', 'Product B', 'Product C'],
+            'price': [99.99, 149.99, 199.99],
+            'stock': [10, 5, 8],
+            'competitor_price': [95.99, 145.99, 195.99],
+            'last_updated': ['2025-06-07'] * 3
+        })
+        
+        analysis = {
+            'total_products': 3,
+            'average_price': sample_data['price'].mean(),
+            'total_stock': sample_data['stock'].sum(),
+            'last_updated': '2025-06-07'
+        }
+        return sample_data, analysis
 
 def show_overview():
     """Display the overview dashboard."""
