@@ -1,0 +1,10 @@
+fastapi>=0.68.0
+uvicorn>=0.15.0
+requests>=2.26.0
+beautifulsoup4>=4.10.0
+langchain>=0.1.0
+langchain-community>=0.0.10
+pydantic>=1.8.0
+python-multipart>=0.0.5
+httpx>=0.24.0
+python-dotenv>=1.0.0
