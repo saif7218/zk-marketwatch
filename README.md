@@ -1,162 +1,106 @@
-# Apon AI - Grocery Price Monitor
+# Price Monitor
 
-AI-Powered Grocery Price Monitoring System
-
-## Overview
-
-Apon AI is an open-source grocery price monitoring system that helps you track and analyze grocery prices across multiple online retailers. The system uses AI-powered web scraping to collect price data, perform analysis, and provide insights through an interactive dashboard.
+A FastAPI application for monitoring product prices across websites with email notifications.
 
 ## Features
 
-- **Automated Price Scraping**: Scrapes grocery prices from multiple online retailers
-- **AI-Powered Analysis**: Uses LangChain and LLMs for intelligent price analysis
-- **Real-time Monitoring**: Tracks price changes and trends over time
-- **Interactive Dashboard**: Next.js based dashboard for visualizing price data
-- **Multi-language Support**: Built with internationalization (i18n) support
-- **Free & Open Source**: No paid APIs required
+- Monitor individual product prices
+- Crawl entire websites for product links
+- Email notifications for price changes
+- Rate limiting to avoid being blocked
+- Beautiful dashboard interface
+- Support for multiple currencies
 
-## Project Structure
-
-```
-apon-ai/
-├── apps/
-│   └── web/                  # Next.js frontend application
-│       ├── src/
-│       │   ├── app/         # Next.js app router
-│       │   ├── components/   # React components
-│       │   └── lib/         # Utility functions
-│       └── public/          # Static assets
-├── scrapers/
-│   ├── grocery_scraper.py  # Web scraper for grocery prices
-│   ├── langchain_agent.py   # AI-powered analysis agent
-│   └── api.py              # Flask API for the backend
-├── data/                   # Scraped data storage
-└── run.py                  # Main entry point
-```
-
-## Prerequisites
-
-- Python 3.9+
-- Node.js 18+
-- npm or yarn
-- Ollama (for local LLM) or HuggingFace API key
-
-## Quick Start
+## Setup
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/apon-ai.git
-   cd apon-ai
-   ```
+```bash
+git clone <repository-url>
+cd price-monitor
+```
 
-2. Set up Python environment and install dependencies:
-   ```bash
-   # Create and activate virtual environment
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   source .venv/bin/activate  # Unix/MacOS
+2. Create a virtual environment and activate it:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-   # Install Python dependencies
-   pip install -r scrapers/requirements.txt
-   ```
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-3. Install Node.js dependencies:
-   ```bash
-   cd apps/web
-   npm install
-   cd ../..
-   ```
-
-4. Install Ollama (for local LLM):
-   ```bash
-   # Download and install from https://ollama.ai/
-   # Then run:
-   ollama pull mistral
-   ```
+4. Configure email settings:
+   - Copy `.env.example` to `.env`
+   - Fill in your email configuration
+   - For Gmail, you'll need to create an App Password
 
 5. Run the application:
-   ```bash
-   python run.py
-   ```
+```bash
+python fastapi_price_monitor.py
+```
 
-   This will:
-   - Start the Flask backend API on port 5000
-   - Start the Next.js frontend on port 3000
-   - Open your default browser to http://localhost:3000
+The application will be available at http://127.0.0.1:8080
+
+## Deployment
+
+### Using Docker
+
+1. Build the Docker image:
+```bash
+docker build -t price-monitor .
+```
+
+2. Run the container:
+```bash
+docker run -p 8080:8080 --env-file .env price-monitor
+```
+
+### Using a VPS
+
+1. Set up a VPS with Ubuntu/Debian
+2. Install Python 3.8+ and pip
+3. Clone the repository
+4. Follow the setup steps above
+5. Use systemd to run the application as a service:
+
+Create `/etc/systemd/system/price-monitor.service`:
+```ini
+[Unit]
+Description=Price Monitor Service
+After=network.target
+
+[Service]
+User=your-user
+WorkingDirectory=/path/to/price-monitor
+Environment="PATH=/path/to/price-monitor/venv/bin"
+ExecStart=/path/to/price-monitor/venv/bin/python fastapi_price_monitor.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+```bash
+sudo systemctl enable price-monitor
+sudo systemctl start price-monitor
+```
 
 ## Usage
 
-1. **Scrape Prices**:
-   - Enter a grocery store URL in the dashboard
-   - The system will scrape prices for grocery items
-   - View results in the dashboard
+1. Open the dashboard at http://127.0.0.1:8080
+2. Enter a product URL or website URL to monitor
+3. The application will start monitoring prices
+4. You'll receive email notifications when prices change
 
-2. **Price Analysis**:
-   - The system uses AI to analyze price trends
-   - View price history and comparisons
-   - Get alerts for significant price changes
+## Security Notes
 
-3. **API Endpoints**:
-   - `POST /api/scrape`: Scrape a website for prices
-   - `GET /api/prices`: Get latest scraped prices
-   - `POST /api/query`: Query the AI agent
-
-## Configuration
-
-Create a `.env` file in the project root with the following variables:
-
-```bash
-# For HuggingFace (alternative to Ollama)
-# HUGGINGFACEHUB_API_TOKEN=your_token_here
-
-# Backend configuration
-FLASK_ENV=development
-FLASK_APP=scrapers/api.py
-
-# Frontend configuration
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-## Development
-
-### Frontend Development
-
-```bash
-cd apps/web
-npm run dev
-```
-
-### Backend Development
-
-```bash
-# Activate virtual environment
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Unix/MacOS
-
-# Run Flask development server
-python scrapers/api.py
-```
+- Never commit your `.env` file
+- Use environment variables for sensitive data
+- Keep your dependencies updated
+- Monitor your application logs for any issues
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Built with Next.js, React, Flask, and LangChain
-- Uses Ollama and HuggingFace for AI capabilities
-- Inspired by the need for affordable price monitoring solutions
-
-This project is proprietary and confidential.
-
-## Contact
-
-For support or inquiries, please contact the development team.
+Feel free to submit issues and enhancement requests! 
