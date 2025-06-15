@@ -5,26 +5,22 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}🚀 Starting deployment process...${NC}"
+echo -e "${BLUE}Starting deployment process...${NC}"
 
-# Backend deployment
-echo -e "${BLUE}📦 Deploying backend to Render...${NC}"
-cd backend
+# Push to GitHub
+echo -e "${BLUE}Pushing to GitHub...${NC}"
 git add .
-git commit -m "Deploy backend to Render"
+git commit -m "Deploy: Update deployment configurations"
 git push origin main
-echo -e "${GREEN}✅ Backend deployment initiated${NC}"
 
-# Frontend deployment
-echo -e "${BLUE}📦 Deploying frontend to Vercel...${NC}"
-cd ../frontend
-git add .
-git commit -m "Deploy frontend to Vercel"
-git push origin main
-echo -e "${GREEN}✅ Frontend deployment initiated${NC}"
+# Deploy to Render
+echo -e "${BLUE}Deploying backend to Render...${NC}"
+curl -X POST https://api.render.com/deploy/srv-XXXXX?key=$RENDER_API_KEY
 
-echo -e "${GREEN}🎉 Deployment process completed!${NC}"
-echo -e "${BLUE}📝 Next steps:${NC}"
-echo "1. Wait for Render to complete backend deployment"
-echo "2. Update NEXT_PUBLIC_BACKEND_URL in Vercel with your Render URL"
-echo "3. Wait for Vercel to complete frontend deployment" 
+# Deploy to Vercel
+echo -e "${BLUE}Deploying frontend to Vercel...${NC}"
+vercel --prod
+
+echo -e "${GREEN}Deployment process completed!${NC}"
+echo -e "${GREEN}Backend URL: https://mart-price-tracker-backend.onrender.com${NC}"
+echo -e "${GREEN}Frontend URL: https://mart-price-tracker.vercel.app${NC}" 
