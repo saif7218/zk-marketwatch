@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Price Comparison - Apon Family Mart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .price-diff-negative { color: #22c55e; }
+        .price-diff-positive { color: #ef4444; }
+        body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-lg mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold text-center mb-6">Price Comparison</h1>
+        
+        <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="compareCategory('meat')" class="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-3 py-3 rounded-lg text-sm font-medium transition-colors flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🥩</span>
+                    <span>Meat</span>
+                </button>
+                <button onclick="compareCategory('eggs')" class="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-3 py-3 rounded-lg text-sm font-medium transition-colors flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🥚</span>
+                    <span>Eggs</span>
+                </button>
+                <button onclick="compareCategory('fruits')" class="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-3 py-3 rounded-lg text-sm font-medium transition-colors flex flex-col items-center justify-center">
+                    <span class="text-xl mb-1">🍎</span>
+                    <span>Fruits</span>
+                </button>
+            </div>
+        </div>
+        
+        <div id="loading" class="hidden">
+            <div class="flex flex-col items-center justify-center p-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                <p class="text-gray-600">Loading prices...</p>
+            </div>
+        </div>
+
+        <div id="results" class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div id="results-content" class="p-4">
+                <div class="text-center text-gray-500 py-8">
+                    Select a category above to compare prices
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let isLoading = false;
+
+    async function compareCategory(category) {
+        if (isLoading) return;
+        
+        isLoading = true;
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('results').classList.add('opacity-50');
+        
+        try {
+            const response = await fetch(`/api/compare/${category}`);
+            if (!response.ok) throw new Error('Failed to fetch prices');
+            const data = await response.json();
+            
+            let html = `
+                <div class="mb-4 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">${category.charAt(0).toUpperCase() + category.slice(1)} Prices</h3>
+                    <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="table-container -mx-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Shwapno</th>
+                                <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Meena</th>
+                                <th scope="col" class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Diff</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">`;
+            
+            if (data.products && data.products.length > 0) {
+                data.products.forEach(product => {
+                    const diffClass = product.difference < 0 ? 'price-diff-negative' : 'price-diff-positive';
+                    html += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 text-sm text-gray-900">${product.name}</td>
+                            <td class="px-3 py-2 text-sm text-right">৳${product.shwapno_price.toFixed(0)}</td>
+                            <td class="px-3 py-2 text-sm text-right">৳${product.meena_bazar_price.toFixed(0)}</td>
+                            <td class="px-3 py-2 text-sm text-right ${diffClass}">৳${product.difference.toFixed(0)}</td>
+                        </tr>`;
+                });
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4" class="px-3 py-4 text-sm text-center text-gray-500">
+                            No matching products found
+                        </td>
+                    </tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            
+            document.getElementById('results-content').innerHTML = html;
+        } catch (error) {
+            document.getElementById('results-content').innerHTML = `
+                <div class="text-center text-red-500 py-8">
+                    Error loading prices. Please try again.
+                </div>`;
+        } finally {
+            isLoading = false;
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('results').classList.remove('opacity-50');
+        }
+    }
+    </script>
+</body>
+</html>

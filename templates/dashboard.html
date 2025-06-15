@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Price Monitor Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 0; }
+        .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 30px; }
+        h1 { text-align: center; color: #4f46e5; }
+        form { display: flex; gap: 10px; margin-bottom: 30px; }
+        input, button { padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: #4f46e5; color: #fff; border: none; cursor: pointer; }
+        button:hover { background: #3730a3; }
+        .product { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; align-items: center; gap: 15px; }
+        .product img { width: 60px; height: 60px; object-fit: contain; border-radius: 8px; background: #fafafa; }
+        .product-info { flex: 1; }
+        .product-title { font-weight: bold; color: #333; }
+        .product-url { font-size: 0.9em; color: #888; }
+        .product-price { color: #22c55e; font-size: 1.2em; font-weight: bold; }
+        .product-error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Price Monitor Dashboard</h1>
+        <form method="post" action="/monitor">
+            <input type="url" name="url" placeholder="Product URL" required style="flex:2">
+            <input type="number" name="interval" value="300" min="60" style="width:100px" title="Interval (seconds)">
+            <button type="submit">Monitor</button>
+        </form>
+        {% for product in products %}
+        <div class="product">
+            {% if product.image_url %}<img src="{{ product.image_url }}" alt="Product Image">{% endif %}
+            <div class="product-info">
+                <div class="product-title">{{ product.title }}</div>
+                <div class="product-url"><a href="{{ product.url }}" target="_blank">{{ product.url }}</a></div>
+                {% if product.price %}
+                <div class="product-price">৳{{ '%.2f' % product.price }}</div>
+                {% elif product.error %}
+                <div class="product-error">Error: {{ product.error }}</div>
+                {% else %}
+                <div class="product-error">Price not found</div>
+                {% endif %}
+                <div style="font-size:0.8em;color:#888;">Last checked: {{ product.last_checked }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

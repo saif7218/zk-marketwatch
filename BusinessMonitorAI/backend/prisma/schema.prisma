@@ -1,0 +1,97 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  monitors      Monitor[]
+  alerts        Alert[]
+  notificationPreferences NotificationPreferences?
+}
+
+model Monitor {
+  id            String    @id @default(cuid())
+  name          String
+  url           String
+  isActive      Boolean   @default(true)
+  frequency     MonitorFrequency
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  priceHistory  PriceHistory[]
+  alerts        Alert[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  monitorId   String
+  monitor     Monitor  @relation(fields: [monitorId], references: [id])
+  price       Float
+  change      Float?
+  changeType  ChangeType?
+  timestamp   DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  monitorId   String
+  monitor     Monitor  @relation(fields: [monitorId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        AlertType
+  message     String
+  severity    AlertSeverity
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model NotificationPreferences {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  email       Boolean  @default(true)
+  sms         Boolean  @default(false)
+  webhook     Boolean  @default(false)
+  webhookUrl  String?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MonitorFrequency {
+  HOURLY
+  DAILY
+  WEEKLY
+}
+
+enum ChangeType {
+  INCREASE
+  DECREASE
+}
+
+enum AlertType {
+  PRICE_CHANGE
+  AVAILABILITY_CHANGE
+  COMPETITOR_CHANGE
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
