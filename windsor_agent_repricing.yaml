@@ -1,0 +1,105 @@
+# --- START PROMPT FOR WINDSURF ---
+
+# Create a competitive_price_monitor_and_reprice agent using this YAML specification. The agent will:
+#   1. Scrape the competitor product page via Playwright or BeautifulSoup.
+#   2. Store snapshots in Supabase/GSheets/local JSON.
+#   3. Detect price, stock, new‐product changes using Pandas.
+#   4. For each detected price change, calculate Apon’s new price at (competitor_price * (1 - margin_pct/100)) and push an update to our store via a REST API.
+#   5. Send alerts (console, Telegram, or Slack) after repricing.
+#   6. Repeat every monitoring_interval seconds.
+
+# YAML:
+name: competitive_price_monitor_and_reprice
+description: Monitor competitor page for price changes, auto‐reprice Apon’s products, and alert.
+inputs:
+  - name: target_url
+    type: string
+    description: Competitor product page URL
+  - name: monitoring_interval
+    type: integer
+    default: 300
+    description: Seconds between checks
+  - name: alert_method
+    type: string
+    default: console
+    options: [console, telegram, slack]
+    description: Alert channel
+  - name: repricing_margin_pct
+    type: number
+    default: 5
+    description: Percent margin under competitor for repricing
+  - name: store_api_endpoint
+    type: string
+    description: Apon store’s update‐price API endpoint
+  - name: store_api_key
+    type: string
+    description: API key for store updates
+
+components:
+  - name: scraper
+    type: python
+    file: agents/price_monitor/scraper.py
+    requirements: [playwright, beautifulsoup4]
+  - name: tracker
+    type: python
+    file: agents/price_monitor/tracker.py
+    requirements: [pandas]
+  - name: repricer
+    type: python
+    file: agents/price_monitor/repricer.py
+    requirements: [requests]
+  - name: alert
+    type: python
+    file: agents/price_monitor/alert.py
+    requirements: [requests, python-telegram-bot]
+  - name: utils
+    type: python
+    file: agents/price_monitor/utils.py
+    requirements: [supabase, gspread]
+
+workflow:
+  - name: monitor_and_reprice_loop
+    steps:
+      1. scrape_data:
+          component: scraper
+          inputs:
+            url: ${{inputs.target_url}}
+      2. store_snapshot:
+          component: utils
+          inputs:
+            site: "competitor"
+            data: ${{steps.scrape_data.output}}
+      3. detect_changes:
+          component: tracker
+          inputs:
+            current_data: ${{steps.scrape_data.output}}
+            site: "competitor"
+      4. reprice_if_needed:
+          component: repricer
+          inputs:
+            changes: ${{steps.detect_changes.output.changes}}
+            margin_pct: ${{inputs.repricing_margin_pct}}
+            api_endpoint: ${{inputs.store_api_endpoint}}
+            api_key: ${{inputs.store_api_key}}
+          condition: ${{steps.detect_changes.output.changes_detected}}
+      5. send_alerts:
+          component: alert
+          inputs:
+            changes: ${{steps.detect_changes.output.changes}}
+            method: ${{inputs.alert_method}}
+          condition: ${{steps.detect_changes.output.changes_detected}}
+      6. wait:
+          delay: ${{inputs.monitoring_interval}}
+          loop: true
+
+config:
+  telegram:
+    bot_token: ${{env.TELEGRAM_BOT_TOKEN}}
+    chat_id: ${{env.TELEGRAM_CHAT_ID}}
+  slack:
+    webhook_url: ${{env.SLACK_WEBHOOK_URL}}
+  supabase:
+    url: ${{env.SUPABASE_URL}}
+    key: ${{env.SUPABASE_KEY}}
+
+# --- END PROMPT FOR WINDSURF ---

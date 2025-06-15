@@ -1,0 +1,5 @@
+product,price,stock,competitor_price,last_updated
+Product A,99.99,50,95.99,2025-06-07
+Product B,149.99,25,145.99,2025-06-07
+Product C,199.99,10,195.99,2025-06-07
+Product D,249.99,5,245.99,2025-06-07
